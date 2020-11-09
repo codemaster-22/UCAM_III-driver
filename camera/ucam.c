@@ -1,9 +1,5 @@
 #include "ucam.h"
 
-void delay(int time){
-  
-}
-
 void send(const uint8_t* str,int len){
   int i;
   flush_uart(CAM);
@@ -23,7 +19,7 @@ void recieve_ack(int cmdno,int pid)
   str[6] = 0;
   uint8_t cc = (uint8_t)cmdno; 
   uint8_t pn[] = {(uint8_t)(pid>>8),(uint8_t)(pid%256)};
-  uint8_t ack_ex[] = {(uint8_t)(0xAA),(uint8_t)(0x0E),cc,str[3],pn[0],pn[1],0};
+  uint8_t ack_ex[] = {(uint8_t)(0xAA),(uint8_t)(0x0E),cc,str[3],pn[1],pn[0],0};
   assert(strcmp((char*)ack_ex,(char*)str)==0);
 }
 
@@ -33,8 +29,8 @@ void get_ack(int cmdno,int pid, uint8_t str[])
   str[1] = (uint8_t)(0x0E);
   str[2] = (uint8_t)cmdno;
   str[3] = 0;
-  str[4] = (uint8_t)(pid>>8);
-  str[5] = (uint8_t) (pid%256);
+  str[4] = (uint8_t)(pid%256);
+  str[5] = (uint8_t) (pid>>8);
 }
 
 
@@ -50,13 +46,13 @@ void recieve_gen(uint8_t str[],int len)
 void recieve_img(uint8_t *ptr){
   int i;
   uint8_t str[6];
-  for(i=0;i<6;i++){
-    read_uart_character(CAM,str+i);
-  }
+   
   for(i=0;i<506;i++){
     read_uart_character(CAM,ptr+i);
   }
-}
+}for(i=0;i<6;i++){
+    read_uart_character(CAM,str+i);
+  }
 
 
 void init_cam()
@@ -78,13 +74,13 @@ void init_cam()
            uint8_t ch;
            read_uart_character(CAM,&ch);
            if(i == 3)continue; // don't care xx thing
-           if(ch != ack_command[i]) goto end;
+           if(ch != ack_command[i]) goto fail;
         }
         for(i = 0;i<6;i++)
         {
             uint8_t ch;
             read_uart_character(CAM,&ch);
-            if(ch != sync_command[i]) goto end;
+            if(ch != sync_command[i]) goto fail;
         }
         goto success;
     }
@@ -105,7 +101,7 @@ void init_cam()
     ack_recieve[6] = 0;
     printf("\nacknowledgement for baudrate : %s\n",(char *)ack_recieve);
     flush_uart(CAM);
-    printf("\nbaud rate set set 2 115200 successfully \n")
+    printf("\nbaud rate set set 2 115200 successfully \n");
 }
 
 void get_pic()
