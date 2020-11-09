@@ -1,3 +1,3 @@
 # UCAM_III-driver
 
-A device driver for Zephyr OS supporting the device UCAM_III camera module.
+A device driver supporting the device UCAM_III camera module.
