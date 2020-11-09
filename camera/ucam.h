@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include "uart.h"
 #define CAM uart_instance[0]
 #define uint8_t unsigned char // temporary only, remove afterwards
 void init_cam();
