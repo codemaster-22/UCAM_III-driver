@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "camera/ucam.h"
+#include "pinmux.h"
 
 int main(void) {
   *pinmux_config_reg = 0x5;
