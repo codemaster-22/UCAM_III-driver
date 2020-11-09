@@ -15,15 +15,16 @@ void send(const uint8_t* str,int len){
 
 void recieve_ack(int cmdno,int pid)
 {
-  uint8_t str[6]; 
+  uint8_t str[7]; 
   int i = 0;
   for(i=0;i<6;i++){
     read_uart_character(CAM,(str+i)); 
   }
+  str[6] = 0;
   uint8_t cc = (uint8_t)cmdno; 
   uint8_t pn[] = {(uint8_t)(pid>>8),(uint8_t)(pid%256)};
-  uint8_t ack_ex[] = {(uint8_t)(0xAA),(uint8_t)(0x0E),cc,str[3],pn[0],pn[1]};
-  assert(strcmp(ack_ex,str)==0);
+  uint8_t ack_ex[] = {(uint8_t)(0xAA),(uint8_t)(0x0E),cc,str[3],pn[0],pn[1],0};
+  assert(strcmp((char*)ack_ex,(char*)str)==0);
 }
 
 void get_ack(int cmdno,int pid, uint8_t str[])
