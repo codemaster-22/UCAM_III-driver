@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include "camera/ucam.h"
 #include "pinmux.h"
-
 int main(void) {
   *pinmux_config_reg = 0x85;
-  int brate = 115200;
+  int brate = 57600;
   set_baud_rate(uart_instance[1],brate);
   init_cam();
   get_pic();
