@@ -3,9 +3,8 @@
 #include "pinmux.h"
 
 int main(void) {
-  *pinmux_config_reg = 0x5;
+  *pinmux_config_reg = 0x85;
   int brate = 115200;
-  set_baud_rate(uart_instance[0],brate);
   set_baud_rate(uart_instance[1],brate);
   init_cam();
   get_pic();
