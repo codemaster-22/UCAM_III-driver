@@ -6,3 +6,4 @@
 void init_cam();
 void get_pic();
 void reset(char tt); // Imediate response with xx = ff
+

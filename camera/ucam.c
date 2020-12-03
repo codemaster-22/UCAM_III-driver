@@ -4,11 +4,9 @@ void send(const uint8_t* str,int len){
   int i;
   flush_uart(CAM);
   for(i =0;i<len;i++){
-    printf("%d ",(int)(*str));
     write_uart_character(CAM,*str);
     str++;
   }
-  printf("\n");
 }
 
 void recieve_ack(int cmdno,int pid)
@@ -48,20 +46,22 @@ void recieve_gen(uint8_t str[],int len)
   printf("\n");
 }
 
-void recieve_img(int count){
+void recieve_img(int count,int limit){
   uint8_t ptr[1000];
   int i=0;
   uint8_t ack_temp[6];
   get_ack(0,count,ack_temp);
   send(ack_temp, 6);
   while(1){
-    read_uart_character(CAM,&ptr[i]);
+    uint8_t ch;
+    read_uart_character(CAM,&ch);
+    ptr[i]=ch;
     i++;
-    if(i==249) break;
+    if(i==limit) break;
   }
-  // for(int j=0;j<i;j++){
-  //   printf("%d\n",(int)*(ptr+i));
-  // }
+  for(int j=4;j<i-2;j++){
+    printf("%d ",(int)ptr[j]);
+  }
 }
 
 
@@ -71,7 +71,7 @@ void init_cam()
   int no=0;
   const uint8_t  sync_command[] = {(uint8_t)(0xAA),(uint8_t)(0x0D), (uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
   const uint8_t  ack_command[] = {(uint8_t)(0xAA),(uint8_t)(0x0E), (uint8_t)(0x0D),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
-  const uint8_t  ack_command_reply[] = {(uint8_t)(0xAA),(uint8_t)(0x0E), (uint8_t)(0xFF),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
+  const uint8_t  ack_command_reply[] = {(uint8_t)(0xAA),(uint8_t)(0x0E), (uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
   //SET_BAUDRATE_command : AA 07 31 00 00 00  ( specific for 115200 )
   start:
   {
@@ -118,12 +118,12 @@ void get_pic()
 {
 
   //INITIAL_command : AA 01 00 07 07 ( specific for JPEG,640x480 )
-  uint8_t initial_command[] = {(uint8_t)(0xAA),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x7),(uint8_t)(0x9),(uint8_t)(0x7)};
+  uint8_t initial_command[] = {(uint8_t)(0xAA),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x7),(uint8_t)(0x3),(uint8_t)(0x7)};
   send(initial_command,6);
   recieve_ack(1,0);
 
     //SNAPSHOT_command : AA 05 00 00 00 00 ( jpg format, keep current frame)
-  // uint8_t snapshot_command[] = {(uint8_t)(0xAA),(uint8_t)(0x5),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
+  // uint8_t snapshot_command[] = {(uint8_t)(0xAA),(uint8_t)(0x5),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
   // send(snapshot_command,6);
   // recieve_ack(5,0);
 
@@ -132,8 +132,8 @@ void get_pic()
   send(set_package_command,6);
   recieve_ack(6,0);
 
-  //GET_PICTURE_command : AA 04 01 00 00 00 ( snapshot mode )
-  uint8_t get_pic_command[] = {(uint8_t)(0xAA),(uint8_t)(0x4),(uint8_t)(0x5),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
+  //GET_PICTURE_command : AA 04 00 00 00 00 ( snapshot mode )
+  uint8_t get_pic_command[] = {(uint8_t)(0xAA),(uint8_t)(0x4),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
   send(get_pic_command,6);
   //printf("LOL\n");
   recieve_ack(4,0);
@@ -150,10 +150,12 @@ void get_pic()
   long no_of_pg = (int)data[3] + (((long)data[4])*256) + (((long)data[5])*256*256) ;
   printf("Image size in bytes : %d\n",no_of_pg);
   //uint8_t *image =(uint8_t*) malloc(no_of_pg);
-  no_of_pg = no_of_pg /(250) ;
+  int counter = no_of_pg/250 ;
   int i = 0;
-  for(i=0;i<=no_of_pg;i++){
-    recieve_img(i);
+  printf("\n\n");
+  for(i=0;i<counter;i++){
+    recieve_img(i,256);
   }
+  recieve_img(counter,6+(no_of_pg%250));
 }
 
