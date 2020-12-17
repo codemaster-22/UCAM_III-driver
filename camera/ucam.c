@@ -134,10 +134,14 @@ void get_pic()
   assert(data[1]==0xA);
   assert(data[2]==0x5);
   long no_of_pg = (int)data[3] + (((long)data[4])<<8) + (((long)data[5])<<16) ;
-  printf("Image size in bytes : %d\n",no_of_pg);
+  flush_uart(HOST);
+  for(int i=0;i<6;i++)
+    write_uart_character(HOST,data[i]);
   int counter = no_of_pg/250 ;
   int i = 0;
   printf("\n\n");
+  char recv;
+  read_uart_character(HOST,&ch);
   for(i=0;i<counter;i++){
     recieve_img(i,256);
   }
