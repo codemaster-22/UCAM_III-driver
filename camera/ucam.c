@@ -54,7 +54,7 @@ void recieve_img(int count,int limit){
     if(i==limit) break;
   }
   for(int j=4;j<i-2;j++){
-    printf("%d ",(int)ptr[j]);
+    write_uart_character(HOST,ptr[j]);
   }
 }
 
@@ -142,6 +142,7 @@ void get_pic()
   printf("\n\n");
   char recv;
   read_uart_character(HOST,&ch);
+  assert(ch=='K');
   for(i=0;i<counter;i++){
     recieve_img(i,256);
   }
