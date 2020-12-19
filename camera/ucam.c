@@ -141,7 +141,7 @@ void get_pic()
   int i = 0;
   printf("\n\n");
   char recv;
-  read_uart_character(HOST,&ch);
+  read_uart_character(HOST,&recv);
   assert(ch=='K');
   for(i=0;i<counter;i++){
     recieve_img(i,256);
