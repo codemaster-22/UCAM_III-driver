@@ -6,11 +6,9 @@ int main(void) {
   int brate = 115200;
   set_baud_rate(uart_instance[1],brate);
   set_baud_rate(uart_instance[2],brate);
-  while(1){
   if( init_cam() < 0) 
       return -1;
   get_pic();
-  }
   return 0;
 }
 

@@ -1,5 +1,14 @@
 #include "ucam.h"
 
+void assert_check(int bool,int track) {
+    if(bool) return;
+    if(track) 
+      printf("Camera response error!!\n");
+    else 
+      printf("Host response error!!\n");
+    exit(-1);
+}
+
 void send(const uint8_t* str,int len){
   int i;
   flush_uart(CAM);
@@ -19,7 +28,7 @@ void recieve_ack(int cmdno,int pid)
   uint8_t cc = (uint8_t)cmdno; 
   uint8_t pn[] = {(uint8_t)(pid>>8),(uint8_t)(pid%256)};
   uint8_t ack_ex[] = {(uint8_t)(0xAA),(uint8_t)(0x0E),cc,str[3],pn[1],pn[0]};
-  assert(strcmp(ack_ex,str)==0);
+  assert_check(strcmp(ack_ex,str)==0,1);
 }
 
 void get_ack(int cmdno,int pid, uint8_t str[])
@@ -48,6 +57,7 @@ void recieve_img(int count,int limit){
   uint8_t ack_temp[6];
   get_ack(0,count,ack_temp);
   send(ack_temp, 6);
+  if(limit==6) return;
   while(1){
     read_uart_character(CAM,(ptr+i));
     i++;
@@ -107,7 +117,7 @@ int init_cam()
   return 0;
 }
 
-void send_reset() {
+void send_full_reset() {
   uint8_t reset_command[] = {(uint8_t)(0xAA),(uint8_t)(0x08),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
   send(reset_command,6);
   recieve_ack(8,0);
@@ -116,7 +126,6 @@ void send_reset() {
 
 void get_pic()
 {
-  printf("reset done\n");
   //INITIAL_command : AA 01 00 07 xx 07 ( specific for JPEG,640x480 xx=don't care )
   uint8_t initial_command[] = {(uint8_t)(0xAA),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x7),(uint8_t)(0x3),(uint8_t)(0x7)};
   send(initial_command,6);
@@ -125,7 +134,7 @@ void get_pic()
     uint8_t set_package_command[] = {(uint8_t)(0xAA),(uint8_t)(0x6),(uint8_t)(0x8),(uint8_t)(0x0),(uint8_t)(0x1),(uint8_t)(0x0)};
     send(set_package_command,6);
     recieve_ack(6,0);
-
+    while(1){
     //GET_PICTURE_command : AA 04 05 00 00 00 ( Current JPEG  )
     uint8_t get_pic_command[] = {(uint8_t)(0xAA),(uint8_t)(0x4),(uint8_t)(0x5),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
     send(get_pic_command,6);
@@ -133,9 +142,9 @@ void get_pic()
     uint8_t data[6];
     recieve_gen(data,6);
     //DATA_command : AA 0A 05 xx yy zz ( current JPEG mode )
-    assert(data[0]==0xAA);
-    assert(data[1]==0xA);
-    assert(data[2]==0x5);
+    assert_check(data[0]==0xAA,1);
+    assert_check(data[1]==0xA,1);
+    assert_check(data[2]==0x5,1);
     long no_of_pg = (int)data[3] + (((long)data[4])<<8) + (((long)data[5])<<16) ;
     printf("New size : %ld",no_of_pg);
     flush_uart(HOST);
@@ -146,14 +155,19 @@ void get_pic()
     printf("\n\n");
     char recv;
     read_uart_character(HOST,&recv);
-    assert(recv=='K');
+    assert_check(recv=='K',0);
     for(i=0;i<counter;i++){
       recieve_img(i,256);
     }
     recieve_img(counter,6+(no_of_pg%250));
+    if(no_of_pg%256 != 0) {
+      uint8_t ack_temp[6];
+      get_ack(0,counter+1,ack_temp);
+      send(ack_temp, 6);
+    }
     read_uart_character(HOST,&recv);
-    assert(recv=='O');
+    assert_check(recv=='O',0);
     printf("Imgdone\n");
-    send_reset();
+    }
 }
 

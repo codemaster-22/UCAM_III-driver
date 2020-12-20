@@ -67,7 +67,13 @@ int main(int argc,char *argv[]) {
           read(serial_port1, &read_buf[0], sizeof(read_buf[0]));
       }
       read(serial_port1, &read_buf[1], sizeof(read_buf[0]));
+      if(read_buf[1]!=(char)0xA){
+         goto start;
+      }
       read(serial_port1, &read_buf[2], sizeof(read_buf[0]));
+      if(read_buf[2]!=(char)0x5){
+         goto start;
+      }
       read(serial_port1, &read_buf[3], sizeof(read_buf[0]));
       read(serial_port1, &read_buf[4], sizeof(read_buf[0]));
       read(serial_port1, &read_buf[5], sizeof(read_buf[0]));
@@ -83,10 +89,12 @@ int main(int argc,char *argv[]) {
       char* temp = (char*) malloc(size*sizeof(char));
       char write_buff;
       write_buff='K';
+      tcflush(serial_port1,TCOFLUSH);
       write(serial_port1,&write_buff,sizeof(write_buff));
       for(long i=0;i<size;i++){
           read(serial_port1, (temp + i) , sizeof(read_buf[0]));
       }
+      tcflush(serial_port1,TCIFLUSH);
       FILE *f1;
       char str[]="Images/image";
       char inte[20];
@@ -103,6 +111,7 @@ int main(int argc,char *argv[]) {
       write_buff='O';
       write(serial_port1,&write_buff,sizeof(write_buff));
       printf("Image %d done",loop);
+      tcflush(serial_port1,TCIOFLUSH);
     }
     close(serial_port1);
     return 0; // success
