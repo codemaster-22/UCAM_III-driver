@@ -104,48 +104,56 @@ int init_cam()
   printf("\n synchronisation process done waiting for 2 seconds for stabilisation \n");
   delay(2);
   printf("\n you are all set \n");
-  uint8_t reset_command[] = {(uint8_t)(0xAA),(uint8_t)(0x08),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
-  send(reset_command,6);
-  recieve_ack(8,0);
   return 0;
 }
 
+void send_reset() {
+  uint8_t reset_command[] = {(uint8_t)(0xAA),(uint8_t)(0x08),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
+  send(reset_command,6);
+  recieve_ack(8,0);
+}
+
+
 void get_pic()
 {
-
+  printf("reset done\n");
   //INITIAL_command : AA 01 00 07 xx 07 ( specific for JPEG,640x480 xx=don't care )
   uint8_t initial_command[] = {(uint8_t)(0xAA),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x7),(uint8_t)(0x3),(uint8_t)(0x7)};
   send(initial_command,6);
   recieve_ack(1,0);
+          //SET_PACKAGE_SIZE_command : AA 06 08 00 01 00 (size=256)
+    uint8_t set_package_command[] = {(uint8_t)(0xAA),(uint8_t)(0x6),(uint8_t)(0x8),(uint8_t)(0x0),(uint8_t)(0x1),(uint8_t)(0x0)};
+    send(set_package_command,6);
+    recieve_ack(6,0);
 
-    //SET_PACKAGE_SIZE_command : AA 06 08 00 01 00 (size=256)
-  uint8_t set_package_command[] = {(uint8_t)(0xAA),(uint8_t)(0x6),(uint8_t)(0x8),(uint8_t)(0x0),(uint8_t)(0x1),(uint8_t)(0x0)};
-  send(set_package_command,6);
-  recieve_ack(6,0);
-
-  //GET_PICTURE_command : AA 04 05 00 00 00 ( Current JPEG  )
-  uint8_t get_pic_command[] = {(uint8_t)(0xAA),(uint8_t)(0x4),(uint8_t)(0x5),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
-  send(get_pic_command,6);
-  recieve_ack(4,0);
-  uint8_t data[6];
-  recieve_gen(data,6);
-  //DATA_command : AA 0A 05 xx yy zz ( current JPEG mode )
-  assert(data[0]==0xAA);
-  assert(data[1]==0xA);
-  assert(data[2]==0x5);
-  long no_of_pg = (int)data[3] + (((long)data[4])<<8) + (((long)data[5])<<16) ;
-  flush_uart(HOST);
-  for(int i=0;i<6;i++)
-    write_uart_character(HOST,data[i]);
-  int counter = no_of_pg/250 ;
-  int i = 0;
-  printf("\n\n");
-  char recv;
-  read_uart_character(HOST,&recv);
-  assert(ch=='K');
-  for(i=0;i<counter;i++){
-    recieve_img(i,256);
-  }
-  recieve_img(counter,6+(no_of_pg%250));
+    //GET_PICTURE_command : AA 04 05 00 00 00 ( Current JPEG  )
+    uint8_t get_pic_command[] = {(uint8_t)(0xAA),(uint8_t)(0x4),(uint8_t)(0x5),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
+    send(get_pic_command,6);
+    recieve_ack(4,0);
+    uint8_t data[6];
+    recieve_gen(data,6);
+    //DATA_command : AA 0A 05 xx yy zz ( current JPEG mode )
+    assert(data[0]==0xAA);
+    assert(data[1]==0xA);
+    assert(data[2]==0x5);
+    long no_of_pg = (int)data[3] + (((long)data[4])<<8) + (((long)data[5])<<16) ;
+    printf("New size : %ld",no_of_pg);
+    flush_uart(HOST);
+    for(int i=0;i<6;i++)
+      write_uart_character(HOST,data[i]);
+    int counter = no_of_pg/250 ;
+    int i = 0;
+    printf("\n\n");
+    char recv;
+    read_uart_character(HOST,&recv);
+    assert(recv=='K');
+    for(i=0;i<counter;i++){
+      recieve_img(i,256);
+    }
+    recieve_img(counter,6+(no_of_pg%250));
+    read_uart_character(HOST,&recv);
+    assert(recv=='O');
+    printf("Imgdone\n");
+    send_reset();
 }
 
