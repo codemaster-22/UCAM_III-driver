@@ -124,7 +124,7 @@ void send_full_reset() {
 }
 
 
-void get_pic()
+void get_pic(int mode)
 {
   //INITIAL_command : AA 01 00 07 xx 07 ( specific for JPEG,640x480 xx=don't care )
   uint8_t initial_command[] = {(uint8_t)(0xAA),(uint8_t)(0x1),(uint8_t)(0x0),(uint8_t)(0x7),(uint8_t)(0x3),(uint8_t)(0x7)};
@@ -134,9 +134,11 @@ void get_pic()
     uint8_t set_package_command[] = {(uint8_t)(0xAA),(uint8_t)(0x6),(uint8_t)(0x8),(uint8_t)(0x0),(uint8_t)(0x1),(uint8_t)(0x0)};
     send(set_package_command,6);
     recieve_ack(6,0);
-    while(1){
+
     //GET_PICTURE_command : AA 04 05 00 00 00 ( Current JPEG  )
     uint8_t get_pic_command[] = {(uint8_t)(0xAA),(uint8_t)(0x4),(uint8_t)(0x5),(uint8_t)(0x0),(uint8_t)(0x0),(uint8_t)(0x0)};
+    
+    start : 
     send(get_pic_command,6);
     recieve_ack(4,0);
     uint8_t data[6];
@@ -168,6 +170,6 @@ void get_pic()
     read_uart_character(HOST,&recv);
     assert_check(recv=='O',0);
     printf("Imgdone\n");
-    }
-}
 
+    if(mode) goto start;
+}

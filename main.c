@@ -8,7 +8,7 @@ int main(void) {
   set_baud_rate(uart_instance[2],brate);
   if( init_cam() < 0) 
       return -1;
-  get_pic();
+  get_pic(1);
   return 0;
 }
 
