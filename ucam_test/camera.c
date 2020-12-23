@@ -62,31 +62,35 @@ int main(int argc,char *argv[]) {
       loop++;
       unsigned char read_buf [7];
       memset(&read_buf, '\0', sizeof(read_buf));
-      start:
-      while(read_buf[0]!=(char)0xAA){
+      // start:
+      // while(read_buf[0]!=(unsigned char)0xAA){
           read(serial_port1, &read_buf[0], sizeof(read_buf[0]));
-      }
+      // }
       read(serial_port1, &read_buf[1], sizeof(read_buf[0]));
-      if(read_buf[1]!=(char)0xA){
-         goto start;
-      }
+      // if(read_buf[1]!=(unsigned char)0xA){
+      //    goto start;
+      // }
       read(serial_port1, &read_buf[2], sizeof(read_buf[0]));
-      if(read_buf[2]!=(char)0x5){
-         goto start;
-      }
+      // if(read_buf[2]!=(unsigned char)0x5){
+      //    goto start;
+      // }
       read(serial_port1, &read_buf[3], sizeof(read_buf[0]));
       read(serial_port1, &read_buf[4], sizeof(read_buf[0]));
       read(serial_port1, &read_buf[5], sizeof(read_buf[0]));
-      printf("%d\n",(int)read_buf[0]);
-      printf("%d\n",(int)read_buf[1]);
-      printf("%d\n",(int)read_buf[2]);
-      printf("%d\n",(int)read_buf[3]);
-      printf("%d\n",(int)read_buf[4]);
-      printf("%d\n",(int)read_buf[5]);
+      // printf("%d\n",(int)read_buf[0]);
+      // printf("%d\n",(int)read_buf[1]);
+      // printf("%d\n",(int)read_buf[2]);
+      // printf("%d\n",(int)read_buf[3]);
+      // printf("%d\n",(int)read_buf[4]);
+      // printf("%d\n",(int)read_buf[5]);
       unsigned long size = 0;
       size = (unsigned long)read_buf[3] + (((unsigned long)read_buf[4])<<8) + (((unsigned long)read_buf[5])<<16) ;
       printf("Size : %ld\n",size);
       char* temp = (char*) malloc(size*sizeof(char));
+      if(temp==NULL) {
+        printf("Malloc failed\n");
+        exit(1);
+      }
       char write_buff;
       write_buff='K';
       tcflush(serial_port1,TCIOFLUSH);

@@ -18,6 +18,17 @@ void send(const uint8_t* str,int len){
   }
 }
 
+void delay_milli(unsigned long milli_seconds)
+{
+	unsigned long cntr1 = milli_seconds;
+	unsigned long tmpCntr;
+
+	while (cntr1--) {
+		tmpCntr = 1000;
+		while (tmpCntr--);
+	}
+}
+
 void recieve_ack(int cmdno,int pid)
 {
   uint8_t str[6]; 
@@ -148,13 +159,12 @@ void get_pic(int mode)
     assert_check(data[1]==0xA,1);
     assert_check(data[2]==0x5,1);
     long no_of_pg = (int)data[3] + (((long)data[4])<<8) + (((long)data[5])<<16) ;
-    printf("New size : %ld",no_of_pg);
+    printf("New size : %ld\n",no_of_pg);
     flush_uart(HOST);
     for(int i=0;i<6;i++)
       write_uart_character(HOST,data[i]);
     int counter = no_of_pg/250 ;
     int i = 0;
-    printf("\n\n");
     char recv;
     read_uart_character(HOST,&recv);
     assert_check(recv=='K',0);
@@ -162,7 +172,7 @@ void get_pic(int mode)
       recieve_img(i,256);
     }
     recieve_img(counter,6+(no_of_pg%250));
-    if(no_of_pg%256 != 0) {
+    if(no_of_pg%250 != 0) {     
       uint8_t ack_temp[6];
       get_ack(0,counter+1,ack_temp);
       send(ack_temp, 6);
