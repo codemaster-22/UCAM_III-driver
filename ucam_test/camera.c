@@ -60,7 +60,7 @@ int main(int argc,char *argv[]) {
     int loop=0;
     while(1){
       loop++;
-      char read_buf [7];
+      unsigned char read_buf [7];
       memset(&read_buf, '\0', sizeof(read_buf));
       start:
       while(read_buf[0]!=(char)0xAA){
@@ -83,18 +83,18 @@ int main(int argc,char *argv[]) {
       printf("%d\n",(int)read_buf[3]);
       printf("%d\n",(int)read_buf[4]);
       printf("%d\n",(int)read_buf[5]);
-      long size = 0;
-      size = (int)read_buf[3] + (((long)read_buf[4])<<8) + (((long)read_buf[5])<<16) ;
+      unsigned long size = 0;
+      size = (unsigned long)read_buf[3] + (((unsigned long)read_buf[4])<<8) + (((unsigned long)read_buf[5])<<16) ;
       printf("Size : %ld\n",size);
       char* temp = (char*) malloc(size*sizeof(char));
       char write_buff;
       write_buff='K';
-      tcflush(serial_port1,TCOFLUSH);
+      tcflush(serial_port1,TCIOFLUSH);
       write(serial_port1,&write_buff,sizeof(write_buff));
       for(long i=0;i<size;i++){
           read(serial_port1, (temp + i) , sizeof(read_buf[0]));
       }
-      tcflush(serial_port1,TCIFLUSH);
+      tcflush(serial_port1,TCIOFLUSH);
       FILE *f1;
       char str[]="Images/image";
       char inte[20];
@@ -109,9 +109,10 @@ int main(int argc,char *argv[]) {
       free(temp);
       fclose(f1);
       write_buff='O';
+      tcflush(serial_port1,TCOFLUSH);
       write(serial_port1,&write_buff,sizeof(write_buff));
-      printf("Image %d done",loop);
       tcflush(serial_port1,TCIOFLUSH);
+      printf("Image %d done",loop);
     }
     close(serial_port1);
     return 0; // success
